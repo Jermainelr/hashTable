@@ -5,6 +5,9 @@
 #include <iostream>
 #include <cstring>
 #include <iomanip>
+#include <vector>//Used only for reading names from files, not for hash table
+#include <cstdlib>
+#include <fstream>
 using namespace std;
 
 struct Student {
@@ -32,13 +35,21 @@ HashTable* createHashTable(int slotCount);
 int getSlotIndex(HashTable* hashTable, int hashCode);
 int computeHashCode(Student* student);
 void reHashTable(HashTable* hashTable);
+void readListFromFile(const char* fileName, vector<string> &names);
 
 int main () {
+	//Init random seed
+	srand(time(NULL));
 	HashTable* hashTable = createHashTable(100);
 	char command[81];
+	int studentIdGenerator = 1;
+	vector<string> randomFirstNames;
+	vector<string> randomLastNames;
+	readListFromFile("firstNames.txt", randomFirstNames);
+	readListFromFile("lastNames.txt", randomLastNames);
 	//Main Loop 
 	do {
-		cout << "Enter Command (ADD, PRINT, DELETE or QUIT)" << endl;
+		cout << "Enter Command (ADD, PRINT, DELETE, RANDOMSTUDENT or QUIT)" << endl;
 		cin >> command;
 		if (strcmp(command,"ADD") == 0) {
 			Student* student =  new Student;
@@ -60,6 +71,16 @@ int main () {
 			int studentId;
 			cin >> studentId;
 			deleteStudent(hashTable, studentId);
+		}
+		else if (strcmp(command, "RANDOMSTUDENT") == 0) {
+			Student* student = new Student;
+			strcpy(student->firstName, randomFirstNames[rand() % randomFirstNames.size()].c_str());
+			strcpy(student->lastName, randomLastNames[rand() % randomLastNames.size()].c_str());
+			student->studentId = studentIdGenerator++;
+			student->gpa = 5.0f * rand() / RAND_MAX;
+			addStudent(hashTable, student);
+			cout << "Added: " << student->firstName << " " << student->lastName << ", " << student->studentId 
+				<< ", " << fixed << setprecision(2) << student->gpa << endl;
 		}
 		else if (strcmp(command, "QUIT") != 0) {
 			cout << "Invalid Command" << endl;
@@ -173,4 +194,20 @@ int computeHashCode(Student* student) {
 //Return slot index
 int getSlotIndex(HashTable* hashTable, int hashCode) {
 	return hashCode % hashTable->slotCount;
+}
+
+
+void readListFromFile(const char* fileName, vector<string> &names) {
+    ifstream file(fileName);
+    if (file.is_open()) {
+		string name;
+		while (file >> name)
+		{
+			names.push_back(name);
+		}
+		file.close();
+    }
+    else {
+		cout << "Unable to open file " << fileName << endl; 
+    }
 }
