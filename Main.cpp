@@ -146,6 +146,7 @@ void deleteStudent(HashTable* hashTable, int studentId) {
 				delete entry;
 				return;
 			}
+			prevEntry = entry;
 		}
 	}
 }
